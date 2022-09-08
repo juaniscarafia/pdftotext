@@ -1,53 +1,59 @@
-const pdf = require('pdf-poppler');
+//const pdf = require('pdf-poppler');
+var pdf2img = require('pdf-img-convert-node-fix');
+const fs = require('fs');
 const { createWorker } = require('tesseract.js');
 const error = require("../../../utils/error");
 
 module.exports = function () {
-    async function convertPage(file, page) {
-        return new Promise(async function(resolve, reject) {
-            let opts = {
-                format: 'jpeg',
-                out_dir: `./files/img/`,
-                out_prefix: `page`,
-                page: page
-            }
+    // async function convertPage(file, page) {
+    //     return new Promise(async function(resolve, reject) {
+    //         let opts = {
+    //             format: 'jpeg',
+    //             out_dir: `./files/img/`,
+    //             out_prefix: `page`,
+    //             page: page
+    //         }
     
-            await pdf.convert(`./files/pdf/${file}`, opts)
-            .then(res => {
-                resolve(true);
-            })
-            .catch(err => {
-                resolve(false);
-            });
-        });
-    }
+    //         await pdf.convert(`./files/pdf/${file}`, opts)
+    //         .then(res => {
+    //             resolve(true);
+    //         })
+    //         .catch(err => {
+    //             resolve(false);
+    //         });
+    //     });
+    // }
 
     async function pdftopic(file, pages) {
         try {
-            let nameShort = file.split('.');
-
-            for (const page of pages) {
-                try {
-                    let opts = {
-                        format: 'jpeg',
-                        out_dir: `./files/img/`,
-                        out_prefix: `page`,
-                        page: page
-                    }
-
-                    pdf.convert(`./files/pdf/${file}`, opts)
-                    .then(res => {
-                        console.log('Successfully converted');
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-                } catch (err) {
-                    throw error(err);
-                }
+            let paginas = [];
+      
+            let options = {
+                width: 2480,
+                height: 3508,
+                page_numbers: pages
             }
-        
-            return "paginas";
+      
+            try {
+                pdfArray = await pdf2img.convert(`./files/pdf/${file}`, options);
+            } catch (err) {
+                throw error(err);
+            }
+      
+            //let xPage = 1;
+            for (i = 0; i < pdfArray.length; i++){
+                fs.writeFile(`./files/img/page_${i}.jpg`, pdfArray[i], function (err) {
+                    if (err) { console.error("Error: " + err); }
+                });
+                paginas.push(`./files/img/page_${i}.jpg`);
+                //xPage++;
+            }
+      
+            if (paginas.length == 0) {
+                throw error(`Las páginas no se encontraron en el pdf`, 400);
+            }
+            
+            return paginas;
         } catch (err) {
             throw error(err, 400);
         }
@@ -98,7 +104,6 @@ module.exports = function () {
 
     return {
         pdftopic,
-        convertPage,
         readpdf,
         moveFile
     };

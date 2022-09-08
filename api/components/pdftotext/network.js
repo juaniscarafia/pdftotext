@@ -35,13 +35,15 @@ const router = express.Router();
  router.post("/", readpdf);
 
  async function pdftopic(req, res, next) {
-        try {
-            const file = req.file;
-        
-            response.success(req, res, "pdftopic", 200);
-        } catch (error) {
-            next(error);
-        }
+    try {
+        const file = req.file;
+        //const { lenguaje } = req.body;
+    
+        let pdftopic = await controller.pdftopic(file.originalname);
+        response.success(req, res, pdftopic, 200);
+    } catch (error) {
+        next(error);
+    }
   }
   
   async function readpdf(req, res, next) {
@@ -65,23 +67,24 @@ const router = express.Router();
             throw error("No se pudo guardar el archivo.", 400);
         }
 
-        let pagesConvert = [];
+        let paginas = await controller.pdftopic(file.name, pages);
+        let textpdf = await controller.readpdf(paginas);
 
-        for (const page of pages) {
-            let convertion = await controller.convertPage(file.name, page);
-            if (convertion){
-                pagesConvert.push(`./files/img/page-${page}.jpg`);
-            }
-        }
+        // for (const page of pages) {
+        //     let convertion = await controller.convertPage(file.name, page);
+        //     if (convertion){
+        //         pagesConvert.push(`./files/img/page-${page}.jpg`);
+        //     }
+        // }
 
-        let textpdf;
-        if (pagesConvert.length > 0) {
-            textpdf = await controller.readpdf(pagesConvert);
-        }
+        // let textpdf;
+        // if (pagesConvert.length > 0) {
+        //     textpdf = await controller.readpdf(pagesConvert);
+        // }
 
         let nota = "";
-        if (pagesConvert.length != pages.length) {
-            nota = `de las ${pages.length} ${pages.length > 1 ? "páginas" : "página"} solo se pudieron procesar ${pagesConvert.length} ${pagesConvert.length > 1 ? "páginas" : "página"}`;
+        if (paginas.length != pages.length) {
+            nota = `de las ${pages.length} ${pages.length > 1 ? "páginas" : "página"} solo se pudieron procesar ${paginas.length} ${paginas.length > 1 ? "páginas" : "página"}`;
         }
   
         response.success(req, res, {

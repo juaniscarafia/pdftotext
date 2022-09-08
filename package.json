@@ -14,7 +14,7 @@
     "express": "^4.18.1",
     "express-fileupload": "^1.4.0",
     "opencollective-postinstall": "^2.0.3",
-    "pdf-poppler": "^0.2.1",
+    "pdf-img-convert-node-fix": "^1.0.6",
     "swagger-jsdoc": "^6.2.5",
     "swagger-ui-express": "^4.5.0",
     "tesseract.js": "^3.0.2"
